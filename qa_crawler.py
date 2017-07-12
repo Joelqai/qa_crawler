@@ -1,12 +1,29 @@
-import requests
-from bs4 import BeautifulSoup
-from selenium import webdriver
+"""「衛生福利部【台灣ｅ院】醫療諮詢服務」的爬蟲程式
+
+這個程式會從「衛生福利部【台灣ｅ院】醫療諮詢服務」爬問答集，並存到資料庫中。
+
+已知問題：
+    * 爬到#21395時會出問題，因為網頁用<>把標題包起來，不符合標準。
+
+"""
+
 import sys
-import json
-from pymongo import MongoClient
 import re
+from pymongo import MongoClient
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import requests
 
 def retrive(drink):
+    """從bs4 select的結果取出文字，並把big5轉成utf-8。
+
+    Args:
+        drink: bs4 select的結果。
+
+    Returns:
+        str: 取出的文字。
+
+    """
     return drink.get_text().encode("latin1", "replace").decode("big5", "replace")
 
 # 連線資料庫
