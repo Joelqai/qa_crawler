@@ -135,7 +135,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
     try:
         # 不一定會有分類。
         drink = soup.select(typeTag)[1]
-    except:
+    except IndexError:
         # 如果沒有分類就跳過。
         pass
     else:
@@ -150,3 +150,6 @@ for q_no in range(firstQuestion, latestQuestion + 1):
         lists = db.lists
         if len(qa) != 0:
             collection.replace_one({"no": qa["no"]}, qa)
+
+# 提示使用者爬蟲已完成
+print("\n爬蟲已完成！")
