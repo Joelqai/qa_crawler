@@ -2,9 +2,6 @@
 
 這個程式會從「衛生福利部【台灣ｅ院】醫療諮詢服務」爬問答集，並存到資料庫中。
 
-已知問題：
-    * 爬到#21395時會出問題，因為網頁用<>把標題包起來，不符合標準。
-
 """
 
 import getopt
@@ -62,7 +59,7 @@ if latestQuestion is None:
     driver.get("http://sp1.hso.mohw.gov.tw/doctor/Index1.php")
     pageSource = driver.page_source
     driver.close()
-    soup = BeautifulSoup(pageSource, "lxml")
+    soup = BeautifulSoup(pageSource, "html.parser")
 
     drink = soup.select(latestQuestionTag)[0]
     if drink.has_attr("href"):
@@ -83,7 +80,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
     qa = {}
     print("\r爬蟲進度：#{}".format(q_no), end = "")
     res = requests.get("http://sp1.hso.mohw.gov.tw/doctor/All/ShowDetail.php?q_no=" + str(q_no))
-    soup = BeautifulSoup(res.text, "lxml")
+    soup = BeautifulSoup(res.text, "html.parser")
 
     # 若結果不存在就跳過
     if len(soup.select(titleTag)) == 0:
