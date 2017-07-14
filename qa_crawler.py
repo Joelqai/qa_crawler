@@ -7,6 +7,7 @@
 
 """
 
+import getopt
 import sys
 import re
 from pymongo import MongoClient
@@ -26,30 +27,47 @@ def retrive(drink):
     """
     return drink.get_text().encode("latin1", "replace").decode("big5", "replace")
 
+# 處理命令列參數
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "s:e:", ["debug"])
+except getopt.GetoptError:
+    print("Usage: {} [-s|-e] [--debug]".format(sys.argv[0]))
+    sys.exit(1);
+firstQuestion = None
+latestQuestion = None
+debug = False
+for o, a in opts:
+    if o in ("-s"):
+        firstQuestion = int(a)
+    if o in ("-e"):
+        latestQuestion = int(a)
+    if o in ("--debug"):
+        debug = True
+
 # 連線資料庫
-print("正在連線資料庫……")
-uri = "mongodb://username:password@localhost/?authSource=admin"
-client = MongoClient(uri)
-db = client["medical_qa"]
-collection = db["lists"]
+if not debug:
+    print("正在連線資料庫……")
+    uri = "mongodb://username:password@localhost/?authSource=admin"
+    client = MongoClient(uri)
+    db = client["medical_qa"]
+    collection = db["lists"]
 
-# 取得最新題號
-print("正在取得最新題號……")
-latestQuestionTag = "#newQA a"
-driver = webdriver.PhantomJS()
-driver.get("http://sp1.hso.mohw.gov.tw/doctor/Index1.php")
-pageSource = driver.page_source
-driver.close()
-soup = BeautifulSoup(pageSource, "lxml")
-
-drink = soup.select(latestQuestionTag)[0]
-if drink.has_attr("href"):
-    latestQuestion = int(drink["href"][24:])
-print("最新題號：#{}".format(latestQuestion))
-if len(sys.argv) == 1:
+# 決定題號範圍
+if firstQuestion is None:
     firstQuestion = 1
-else:
-    firstQuestion = int(sys.argv[1])
+if latestQuestion is None:
+    print("正在取得最新題號……")
+    latestQuestionTag = "#newQA a"
+    driver = webdriver.PhantomJS()
+    driver.get("http://sp1.hso.mohw.gov.tw/doctor/Index1.php")
+    pageSource = driver.page_source
+    driver.close()
+    soup = BeautifulSoup(pageSource, "lxml")
+
+    drink = soup.select(latestQuestionTag)[0]
+    if drink.has_attr("href"):
+        latestQuestion = int(drink["href"][24:])
+    print("最新題號：#{}".format(latestQuestion))
 
 # 爬問答
 print("開始爬蟲……")
@@ -121,7 +139,10 @@ for q_no in range(firstQuestion, latestQuestion + 1):
         match = re.search("相關分類 ：(.+)", retrive(drink))
         qa["type"] = match.group(1)
 
-    # 存入資料庫
-    lists = db.lists
-    if len(qa) != 0:
-        collection.replace_one({"no": qa["no"]}, qa)
+    if debug:
+        print("\n{}".format(qa))
+    else:
+        # 存入資料庫
+        lists = db.lists
+        if len(qa) != 0:
+            collection.replace_one({"no": qa["no"]}, qa)
