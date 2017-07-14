@@ -79,7 +79,14 @@ typeTag = "li.count"
 for q_no in range(firstQuestion, latestQuestion + 1):
     qa = {}
     print("\r爬蟲進度：#{}".format(q_no), end = "")
-    res = requests.get("http://sp1.hso.mohw.gov.tw/doctor/All/ShowDetail.php?q_no=" + str(q_no))
+    while True:
+        try:
+            res = requests.get("http://sp1.hso.mohw.gov.tw/doctor/All/ShowDetail.php?q_no=" + str(q_no))
+        except requests.exceptions.ConnectionError:
+            # 連線失敗時，留在 while 迴圈內重試
+            continue
+        # 連線成功時，跳出 while 迴圈
+        break
     soup = BeautifulSoup(res.text, "html.parser")
 
     # 若結果不存在就跳過
