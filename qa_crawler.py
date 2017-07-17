@@ -149,7 +149,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
         # 存入資料庫
         lists = db.lists
         if len(qa) != 0:
-            collection.replace_one({"no": qa["no"]}, qa)
+            collection.replace_one({"no": qa["no"]}, qa, upsert=True)
 
 # 提示使用者爬蟲已完成
 print("\n爬蟲已完成！")
