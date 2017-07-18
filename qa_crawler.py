@@ -2,6 +2,13 @@
 
 這個程式會從「衛生福利部【台灣ｅ院】醫療諮詢服務」爬問答集，並存到資料庫中。
 
+命令列選項：
+    -s 指定起始題號。
+    -e 指定結束題號。
+    --complete 從第一題爬到最新一題。會覆寫 -s 與 -e 的設定。
+    --debug 印出爬蟲結果，不存入資料庫。
+    --help 印出說明訊息
+
 """
 
 import getopt
@@ -24,17 +31,28 @@ def retrive(drink):
     """
     return drink.get_text().encode("latin1", "replace").decode("big5", "replace")
 
+def usage():
+    print("Usage: {} [-s|-e] [--complete|--debug|--help]".format(sys.argv[0]))
+    print("""    -s 指定起始題號。
+    -e 指定結束題號。
+    --complete 從第一題爬到最新一題。會覆寫 -s 與 -e 的設定。
+    --debug 印出爬蟲結果，不存入資料庫。
+    --help 印出說明訊息""")
+
 # 處理命令列參數
 try:
     opts, args = getopt.getopt(sys.argv[1:], "s:e:", ["complete", "debug"])
 except getopt.GetoptError:
-    print("Usage: {} [-s|-e] [--debug]".format(sys.argv[0]))
-    sys.exit(1);
+    usage()
+    sys.exit(1)
 firstQuestion = None
 latestQuestion = None
 complete = False
 debug = False
 for o, a in opts:
+    if o in ("--help"):
+        usage()
+        sys.exit(0)
     if o in ("-s"):
         firstQuestion = int(a)
     if o in ("-e"):
@@ -53,10 +71,10 @@ collection = db["lists"]
 
 # 決定題號範圍
 if firstQuestion is None:
-    firstQuestion = 1
-if not complete:
     firstQuestion = collection.find_one(sort=[("no", -1)])["no"] + 1
-if latestQuestion is None:
+if complete:
+    firstQuestion = 1
+if latestQuestion is None or complete:
     print("正在取得最新題號……")
     latestQuestionTag = "#newQA a"
     driver = webdriver.PhantomJS()
