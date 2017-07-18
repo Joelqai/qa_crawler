@@ -26,32 +26,36 @@ def retrive(drink):
 
 # 處理命令列參數
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "s:e:", ["debug"])
+    opts, args = getopt.getopt(sys.argv[1:], "s:e:", ["complete", "debug"])
 except getopt.GetoptError:
     print("Usage: {} [-s|-e] [--debug]".format(sys.argv[0]))
     sys.exit(1);
 firstQuestion = None
 latestQuestion = None
+complete = False
 debug = False
 for o, a in opts:
     if o in ("-s"):
         firstQuestion = int(a)
     if o in ("-e"):
         latestQuestion = int(a)
+    if o in ("--complete"):
+        complete = True
     if o in ("--debug"):
         debug = True
 
 # 連線資料庫
-if not debug:
-    print("正在連線資料庫……")
-    uri = "mongodb://username:password@localhost/?authSource=admin"
-    client = MongoClient(uri)
-    db = client["medical_qa"]
-    collection = db["lists"]
+print("正在連線資料庫……")
+uri = "mongodb://username:password@localhost/?authSource=admin"
+client = MongoClient(uri)
+db = client["medical_qa"]
+collection = db["lists"]
 
 # 決定題號範圍
 if firstQuestion is None:
     firstQuestion = 1
+if not complete:
+    firstQuestion = collection.find_one(sort=[("no", -1)])["no"] + 1
 if latestQuestion is None:
     print("正在取得最新題號……")
     latestQuestionTag = "#newQA a"
