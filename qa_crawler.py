@@ -64,7 +64,7 @@ for o, a in opts:
 
 # 連線資料庫
 print("正在連線資料庫……")
-uri = "mongodb://username:password@localhost/?authSource=admin"
+uri = "mongodb://username:passwordc@localhost/?authSource=admin"
 client = MongoClient(uri)
 db = client["medical_qa"]
 collection = db["lists"]
@@ -126,7 +126,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
     # 閱覽次數
     drink = soup.select(countTag)[0]
     match = re.search("\d+", retrive(drink))
-    qa["count"] = match.group()
+    qa["count"] = int(match.group())
 
     # 發問者
     drink = soup.select(askerTag)[0]
