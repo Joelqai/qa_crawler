@@ -97,7 +97,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
             continue
         # 連線成功時，跳出 while 迴圈
         break
-    res.encoding = "big5"
+    res.encoding = "big5hkscs"
     soup = BeautifulSoup(res.text, "html.parser")
 
     # 若結果不存在就跳過
