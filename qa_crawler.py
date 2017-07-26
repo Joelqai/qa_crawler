@@ -19,18 +19,6 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import requests
 
-def retrive(drink):
-    """從bs4 select的結果取出文字，並把big5轉成utf-8。
-
-    Args:
-        drink: bs4 select的結果。
-
-    Returns:
-        str: 取出的文字。
-
-    """
-    return drink.get_text().encode("latin1", "replace").decode("big5", "replace")
-
 def usage():
     print("Usage: {} [-s|-e] [--complete|--debug|--help]".format(sys.argv[0]))
     print("""    -s 指定起始題號。
@@ -64,7 +52,7 @@ for o, a in opts:
 
 # 連線資料庫
 print("正在連線資料庫……")
-uri = "mongodb://username:passwordc@localhost/?authSource=admin"
+uri = "mongodb://username:password@localhost/?authSource=admin"
 client = MongoClient(uri)
 db = client["medical_qa"]
 collection = db["lists"]
@@ -109,6 +97,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
             continue
         # 連線成功時，跳出 while 迴圈
         break
+    res.encoding = "big5"
     soup = BeautifulSoup(res.text, "html.parser")
 
     # 若結果不存在就跳過
@@ -120,22 +109,22 @@ for q_no in range(firstQuestion, latestQuestion + 1):
 
     # 標題
     drink = soup.select(titleTag)[0]
-    match = re.search("#\d+ (.+)", retrive(drink))
+    match = re.search("#\d+ (.+)", drink.get_text())
     qa["title"] = match.group(1)
 
     # 閱覽次數
     drink = soup.select(countTag)[0]
-    match = re.search("\d+", retrive(drink))
+    match = re.search("\d+", drink.get_text())
     qa["count"] = int(match.group())
 
     # 發問者
     drink = soup.select(askerTag)[0]
-    match = re.search("發問者：([^／]+)", retrive(drink))
+    match = re.search("發問者：([^／]+)", drink.get_text())
     qa["asker"] = match.group(1)
 
     # 醫院、科別、答復者
     drink = soup.select(doctorTag)[0]
-    match = re.search("答復者：([^,]+)", retrive(drink))
+    match = re.search("答復者：([^,]+)", drink.get_text())
     doctorList = match.group(1).split("／")
     if len(doctorList) != 3:
         qa["class"] = doctorList[0]
@@ -147,11 +136,11 @@ for q_no in range(firstQuestion, latestQuestion + 1):
 
     # 詢問內容
     drink = soup.select(askTag)[0]
-    qa["ask"] = retrive(drink)
+    qa["ask"] = drink.get_text()
 
     # 答復內容
     drink = soup.select(ansTag)[0]
-    qa["ans"] = retrive(drink)
+    qa["ans"] = drink.get_text()
 
     # 相關分類
     try:
@@ -162,7 +151,7 @@ for q_no in range(firstQuestion, latestQuestion + 1):
         pass
     else:
         # 如果有分類就存起來。
-        match = re.search("相關分類 ：(.+)", retrive(drink))
+        match = re.search("相關分類 ：(.+)", drink.get_text())
         qa["type"] = match.group(1)
 
     if debug:
