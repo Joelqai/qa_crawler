@@ -51,6 +51,7 @@ for o, a in opts:
         debug = True
 
 # 連線資料庫
+# DB連不上線，看不到東西。
 print("正在連線資料庫……")
 uri = "mongodb://username:password@localhost/?authSource=admin"
 client = MongoClient(uri)
